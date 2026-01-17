@@ -1,0 +1,44 @@
+services:
+  # 1. API Server (Backend)
+  - type: web
+    name: united-nameless-api
+    env: node
+    buildCommand: cd API && npm install
+    startCommand: cd API && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: BOT_ID
+        value: UNITED_NAMELESS_BOT
+      - key: CORS_ORIGIN
+        value: https://united-nameless-web.onrender.com # Web Client URL (Update after deploy)
+      # Add other secrets (FIREBASE_*, JWT_SECRET, etc.) in Render Dashboard
+
+  # 2. Discord Bot (Worker)
+  - type: worker
+    name: united-nameless-bot
+    env: node
+    buildCommand: cd Dis.NN.Auth && npm install && npm install canvas
+    startCommand: cd Dis.NN.Auth && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_BASE_URL
+        value: http://united-nameless-api:4000 # Inter-service communication
+      - key: BOT_ID
+        value: UNITED_NAMELESS_BOT
+      # Add other secrets (DISCORD_TOKEN, etc.) in Render Dashboard
+
+  # 3. Web Client (Frontend)
+  - type: web
+    name: united-nameless-web
+    env: node
+    buildCommand: cd web-client && npm install && npm run build
+    startCommand: cd web-client && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        value: https://united-nameless-api.onrender.com # API External URL (Update after deploy)

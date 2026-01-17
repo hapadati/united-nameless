@@ -1,0 +1,37 @@
+{
+  "name": "united-nameless-api",
+  "version": "1.0.0",
+  "description": "Security-focused API server for UNITED NAMELESS Discord Bot",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "api",
+    "fastify",
+    "firebase"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "fastify": "^4.26.0",
+    "@fastify/cors": "^8.5.0",
+    "@fastify/helmet": "^11.1.1",
+    "firebase-admin": "^12.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "speakeasy": "^2.0.0",
+    "rate-limiter-flexible": "^3.0.6",
+    "dotenv": "^16.4.1",
+    "pino": "^8.18.0",
+    "pino-pretty": "^10.3.1"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
