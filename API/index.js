@@ -39,8 +39,12 @@ const fastify = Fastify({
 async function start() {
     try {
         // 環境変数チェック
-        const requiredEnvVars = ['BOT_ID', 'FIREBASE_SERVICE_ACCOUNT_PATH', 'JWT_SECRET', 'TOTP_SECRET'];
+        const requiredEnvVars = ['BOT_ID', 'JWT_SECRET', 'TOTP_SECRET'];
         const missingVars = requiredEnvVars.filter((varName) => !process.env[varName]);
+
+        if (!process.env.FIREBASE_SERVICE_ACCOUNT && !process.env.FIREBASE_SERVICE_ACCOUNT_PATH) {
+            missingVars.push('FIREBASE_SERVICE_ACCOUNT (or FIREBASE_SERVICE_ACCOUNT_PATH)');
+        }
 
         if (missingVars.length > 0) {
             logger.error({ missingVars }, '❌ Missing required environment variables');

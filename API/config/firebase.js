@@ -19,15 +19,32 @@ export function initializeFirebase() {
         return db;
     }
 
-    const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+    let serviceAccount;
 
-    if (!serviceAccountPath) {
-        throw new Error('FIREBASE_SERVICE_ACCOUNT_PATH environment variable is required');
+    // 1. Try JSON content from Environment Variable (Render/Cloud)
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+        try {
+            serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+            console.log('✅ Firebase initialized using FIREBASE_SERVICE_ACCOUNT (JSON content)');
+        } catch (e) {
+            console.error('❌ Failed to parse FIREBASE_SERVICE_ACCOUNT JSON:', e.message);
+            throw new Error('Invalid JSON in FIREBASE_SERVICE_ACCOUNT');
+        }
+    }
+    // 2. Try File Path (Local/Legacy)
+    else if (process.env.FIREBASE_SERVICE_ACCOUNT_PATH) {
+        try {
+            serviceAccount = JSON.parse(readFileSync(process.env.FIREBASE_SERVICE_ACCOUNT_PATH, 'utf8'));
+            console.log('✅ Firebase initialized using FIREBASE_SERVICE_ACCOUNT_PATH');
+        } catch (error) {
+            console.error('❌ Failed to read Firebase key file:', error.message);
+            throw error;
+        }
+    } else {
+        throw new Error('Missing Firebase credentials. Set FIREBASE_SERVICE_ACCOUNT (JSON) or FIREBASE_SERVICE_ACCOUNT_PATH.');
     }
 
     try {
-        const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, 'utf8'));
-
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount),
         });
@@ -39,10 +56,9 @@ export function initializeFirebase() {
             ignoreUndefinedProperties: true,
         });
 
-        console.log('✅ Firebase initialized successfully');
         return db;
     } catch (error) {
-        console.error('❌ Failed to initialize Firebase:', error.message);
+        console.error('❌ Failed to initialize Firebase App:', error.message);
         throw error;
     }
 }

@@ -32,3 +32,9 @@ yarn-error.log*
 # Firebase
 firebase-debug.log
 serviceAccountKey.json
+*-firebase-adminsdk-*.json
+
+# Root level (temp installs for scripts)
+/package.json
+/package-lock.json
+/node_modules
