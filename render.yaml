@@ -14,6 +14,8 @@ services:
         value: UNITED_NAMELESS_BOT
       - key: CORS_ORIGIN
         value: https://united-nameless-web.onrender.com # Web Client URL (Update after deploy)
+      - key: DATABASE_URL
+        value: postgres://user:pass@ep-xyz.neon.tech/neondb # Update via Render Dashboard
       # Add other secrets (FIREBASE_*, JWT_SECRET, etc.) in Render Dashboard
 
   # 2. Discord Bot (Worker)
