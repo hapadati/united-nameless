@@ -135,6 +135,16 @@ const adminCommands = await loadCommandsFromDir('admin');
 const economyCommands = await loadCommandsFromDir('economy');
 
 // ==========================
+// 📂 Context Menu Commands読み込み
+// ==========================
+const contextCommands = await loadCommandsFromDir('context');
+client.contextCommands = new Map();
+for (const cmd of contextCommands) {
+  client.contextCommands.set(cmd.data.name, cmd);
+  console.log(`✅ Context Menu loaded: ${cmd.data.name}`);
+}
+
+// ==========================
 // 📂 スラッシュコマンド登録
 // ==========================
 const allCommandModules = [
@@ -185,6 +195,17 @@ for (const mod of validCommandModules) {
     console.warn("[command-register] toJSON failed for module:", mod, err);
   }
 }
+
+// Context Menu Commandsも追加
+for (const cmd of contextCommands) {
+  try {
+    const json = cmd.data.toJSON();
+    commandsMap.set(json.name, json);
+  } catch (err) {
+    console.warn("[context-command-register] toJSON failed:", err);
+  }
+}
+
 const commands = Array.from(commandsMap.values());
 
 console.log(`[command-register] Registering ${commands.length} commands`);
@@ -290,6 +311,22 @@ client.on('interactionCreate', async (interaction) => {
 
       console.warn("⚠️ 未定義のスラッシュコマンド:", commandName);
     }
+
+    // ==========================
+    // 📝 Context Menu Command
+    // ==========================
+    if (interaction.isMessageContextMenuCommand() || interaction.isUserContextMenuCommand()) {
+      const { commandName } = interaction;
+      console.log(`[interactionCreate] context menu: ${commandName}`);
+
+      const contextCmd = client.contextCommands.get(commandName);
+      if (contextCmd) {
+        await contextCmd.execute(interaction);
+        return;
+      }
+
+      console.warn("⚠️ 未定義のContext Menu Command:", commandName);
+    }
   } catch (err) {
     console.error("❌ interactionCreate error:", err);
   }
@@ -338,14 +375,21 @@ client.on('warn', w => console.warn('[WARN]', w));
 client.on('error', e => console.error('[ERROR]', e));
 client.on('shardError', e => console.error('[SHARD ERROR]', e));
 
+// [NEW] Quest Events
+import { handleVoiceQuest } from './events/voice-quest.js';
+import { initInviteCache, handleInviteQuest } from './events/invite-quest.js';
+
 // ==========================
 // 📂 起動処理
 // ==========================
-client.once('ready', () => {
+client.once('ready', async () => {
   console.log(`✅ Discord にログイン成功: ${client.user.tag}`);
 
   // Setup audit log monitoring
   setupAuditLogMonitoring(client);
+
+  // [NEW] Initialize invite cache
+  await initInviteCache(client);
 
   logToSheets({
     serverId: "system",
@@ -395,19 +439,26 @@ client.on("shardDisconnect", (event) => {
 // [NEW] Voice State Update Observer
 client.on('voiceStateUpdate', async (oldState, newState) => {
   try {
+    // 既存の監視
     await handleVoiceStateUpdate(oldState, newState);
+    // [NEW] クエスト監視
+    await handleVoiceQuest(oldState, newState);
   } catch (err) {
     console.error("❌ Voice Event Error:", err);
   }
 });
 
-// [NEW] Guild Member Add - Bot Join Detection
+// [NEW] Guild Member Add - Bot Join Detection & Invite Quest
 client.on('guildMemberAdd', async (member) => {
   try {
+    // Bot Join監視
     await handleBotJoin(member);
+    // [NEW] 招待クエスト監視
+    await handleInviteQuest(member);
   } catch (err) {
-    console.error("❌ Bot Join Detection Error:", err);
+    console.error("❌ Guild Member Add Error:", err);
   }
 });
+
 
 

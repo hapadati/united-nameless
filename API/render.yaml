@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: united-nameless-api
+    env: node
+    region: singapore
+    buildCommand: npm install
+    startCommand: node index.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: BOT_ID
+        value: UNITED_NAMELESS_BOT
+      - key: CORS_ORIGIN
+        sync: false # Set Web Client URL here (e.g., https://your-web-app.onrender.com)
+      - key: DATABASE_URL
+        sync: false # Neon PostgreSQL URL
+      - key: FIREBASE_SERVICE_ACCOUNT
+        sync: false # Firebase Admin SDK JSON
+      - key: JWT_SECRET
+        sync: false # Generate: openssl rand -hex 32
+      - key: TOTP_SECRET
+        sync: false # Base32 Secret
+      - key: ADMIN_SECRET
+        sync: false # Admin Password

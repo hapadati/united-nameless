@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: united-nameless-web
+    env: node
+    region: singapore
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        sync: false # Set API Server URL here (e.g., https://united-nameless-api.onrender.com)
+      - key: NEXT_PUBLIC_BOT_ID
+        value: UNITED_NAMELESS_BOT
+      - key: DISCORD_CLIENT_ID
+        sync: false # Discord OAuth Client ID
+      - key: DISCORD_CLIENT_SECRET
+        sync: false # Discord OAuth Secret
+      - key: NEXTAUTH_SECRET
+        sync: false # Generate: openssl rand -base64 32
+      - key: NEXTAUTH_URL
+        sync: false # Web Client URL (e.g., https://united-nameless-web.onrender.com)
+      - key: DISCORD_BOT_TOKEN
+        sync: false # Discord Bot Token

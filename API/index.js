@@ -17,6 +17,8 @@ import eventsRoutes from './routes/events.js';
 import economyRoutes from './routes/economy.js';
 import adminRoutes from './routes/admin.js';
 import questRoutes from './routes/quests.js';
+import reportsRoutes from './routes/reports.js';
+import meetingRoutes from './routes/meeting.js';
 
 // 環境変数読み込み
 dotenv.config();
@@ -88,6 +90,8 @@ async function start() {
         await fastify.register(economyRoutes, { prefix: '/economy' });
         await fastify.register(adminRoutes, { prefix: '/admin' });
         await fastify.register(questRoutes, { prefix: '/quests' });
+        await fastify.register(reportsRoutes, { prefix: '/reports' });
+        await fastify.register(meetingRoutes, { prefix: '/meeting' });
 
         // サーバー起動
         await fastify.listen({ port: PORT, host: HOST });

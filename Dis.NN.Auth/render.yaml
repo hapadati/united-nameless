@@ -1,0 +1,22 @@
+services:
+  - type: worker
+    name: united-nameless-bot
+    env: node
+    region: singapore
+    buildCommand: npm install
+    startCommand: node main.mjs
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_BASE_URL
+        sync: false # Set API Server URL here (e.g., https://united-nameless-api.onrender.com)
+      - key: BOT_ID
+        value: UNITED_NAMELESS_BOT
+      - key: PORT
+        value: 3001
+      - key: DISCORD_TOKEN
+        sync: false # Discord Bot Token
+      - key: CLIENT_ID
+        sync: false # Discord Application ID
+      - key: DISCORD_GUILD_ID
+        sync: false # Discord Server ID

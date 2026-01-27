@@ -6,8 +6,9 @@ const db = getFirestore();
 
 export const QUEST_TYPES = {
     MESSAGE_IN_CHANNEL: 'MESSAGE_IN_CHANNEL',
+    VOICE_JOIN: 'VOICE_JOIN', // VC参加時間 (分)
+    INVITE_USER: 'INVITE_USER', // 招待人数 (人)
     // 将来的な拡張性:
-    // VOICE_TIME: 'VOICE_TIME',
     // REACTION_ADD: 'REACTION_ADD'
 };
 
@@ -24,7 +25,7 @@ export async function createQuest(questData) {
             title,
             description,
             type, // e.g., 'MESSAGE_IN_CHANNEL'
-            targetId, // e.g., Channel ID
+            targetId: targetId || null, // e.g., Channel ID (nullable)
             requiredCount: parseInt(requiredCount, 10),
             rewardPoints: parseInt(rewardPoints, 10),
             createdBy,
@@ -62,10 +63,10 @@ export async function getActiveQuests() {
 /**
  * クエストの進捗を更新・チェックする (Botから呼ばれる)
  * @param {string} userId
- * @param {object} action { type: 'MESSAGE_IN_CHANNEL', channelId: '...' }
+ * @param {object} action { type: 'MESSAGE_IN_CHANNEL', channelId: '...', duration: 10 (min), inviteCount: 1 }
  */
 export async function processQuestProgress(userId, action) {
-    const { type, channelId } = action;
+    const { type, channelId, duration } = action;
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD (デイリークエスト用)
 
     // 1. アクティブなクエストを取得
@@ -73,10 +74,12 @@ export async function processQuestProgress(userId, action) {
     const activeQuests = await getActiveQuests();
 
     // タイプが一致するクエストのみフィルタリング
-    // 例: メッセージ投稿系のクエストで、かつチャンネルが一致するもの
     const relevantQuests = activeQuests.filter(q => {
         if (q.type !== type) return false;
-        if (q.type === QUEST_TYPES.MESSAGE_IN_CHANNEL && q.targetId !== channelId) return false;
+
+        // ターゲット指定がある場合のみチェック（指定なし＝どこでもOK）
+        if (q.type === QUEST_TYPES.MESSAGE_IN_CHANNEL && q.targetId && q.targetId !== channelId) return false;
+
         return true;
     });
 
@@ -99,7 +102,7 @@ export async function processQuestProgress(userId, action) {
             // プログレス取得 (デイリーリセット判定)
             const currentProgress = questProgress[quest.id] || { date: today, count: 0, completed: false };
 
-            // 日付が変わっていたらリセット
+            // 日付が変わっていたらリセット (デイリークエストとして扱う)
             if (currentProgress.date !== today) {
                 currentProgress.date = today;
                 currentProgress.count = 0;
@@ -109,8 +112,19 @@ export async function processQuestProgress(userId, action) {
             if (currentProgress.completed) continue; // 既に本日クリア済み
 
             // カウント進行
-            currentProgress.count += 1;
-            shouldUpdate = true;
+            let increment = 0;
+            if (type === QUEST_TYPES.MESSAGE_IN_CHANNEL) {
+                increment = 1;
+            } else if (type === QUEST_TYPES.VOICE_JOIN && duration) {
+                increment = duration; // 分単位
+            } else if (type === QUEST_TYPES.INVITE_USER) {
+                increment = 1;
+            }
+
+            if (increment > 0) {
+                currentProgress.count += increment;
+                shouldUpdate = true;
+            }
 
             // 達成確認
             if (currentProgress.count >= quest.requiredCount) {

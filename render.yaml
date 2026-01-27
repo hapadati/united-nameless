@@ -3,8 +3,10 @@ services:
   - type: web
     name: united-nameless-api
     env: node
+    region: singapore
     buildCommand: cd API && npm install
-    startCommand: cd API && npm start
+    startCommand: cd API && node index.js
+    healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
@@ -13,34 +15,72 @@ services:
       - key: BOT_ID
         value: UNITED_NAMELESS_BOT
       - key: CORS_ORIGIN
-        value: https://united-nameless-web.onrender.com # Web Client URL (Update after deploy)
+        sync: false # Set via Render Dashboard after Web Client deploy
       - key: DATABASE_URL
-        value: postgres://user:pass@ep-xyz.neon.tech/neondb # Update via Render Dashboard
-      # Add other secrets (FIREBASE_*, JWT_SECRET, etc.) in Render Dashboard
+        sync: false # Neon PostgreSQL URL (set via Dashboard)
+      - key: FIREBASE_SERVICE_ACCOUNT
+        sync: false # Firebase Admin SDK JSON (set via Dashboard)
+      - key: JWT_SECRET
+        sync: false
+      - key: TOTP_SECRET
+        sync: false
+      - key: ADMIN_SECRET
+        sync: false
 
   # 2. Discord Bot (Worker)
   - type: worker
     name: united-nameless-bot
     env: node
-    buildCommand: cd Dis.NN.Auth && npm install && npm install canvas
-    startCommand: cd Dis.NN.Auth && npm start
+    region: singapore
+    buildCommand: cd Dis.NN.Auth && npm install
+    startCommand: cd Dis.NN.Auth && node main.mjs
     envVars:
       - key: NODE_ENV
         value: production
       - key: API_BASE_URL
-        value: http://united-nameless-api:4000 # Inter-service communication
+        fromService:
+          type: web
+          name: united-nameless-api
+          property: host
       - key: BOT_ID
         value: UNITED_NAMELESS_BOT
-      # Add other secrets (DISCORD_TOKEN, etc.) in Render Dashboard
+      - key: PORT
+        value: 3001
+      - key: DISCORD_TOKEN
+        sync: false # Set via Render Dashboard
+      - key: CLIENT_ID
+        sync: false
+      - key: DISCORD_GUILD_ID
+        sync: false
 
   # 3. Web Client (Frontend)
   - type: web
     name: united-nameless-web
     env: node
+    region: singapore
     buildCommand: cd web-client && npm install && npm run build
     startCommand: cd web-client && npm start
+    healthCheckPath: /
     envVars:
       - key: NODE_ENV
         value: production
       - key: NEXT_PUBLIC_API_URL
-        value: https://united-nameless-api.onrender.com # API External URL (Update after deploy)
+        fromService:
+          type: web
+          name: united-nameless-api
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: NEXT_PUBLIC_BOT_ID
+        value: UNITED_NAMELESS_BOT
+      - key: DISCORD_CLIENT_ID
+        sync: false # Set via Render Dashboard
+      - key: DISCORD_CLIENT_SECRET
+        sync: false
+      - key: NEXTAUTH_SECRET
+        sync: false # Generate with: openssl rand -base64 32
+      - key: NEXTAUTH_URL
+        fromService:
+          type: web
+          name: united-nameless-web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: DISCORD_BOT_TOKEN
+        sync: false

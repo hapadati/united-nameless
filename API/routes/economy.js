@@ -18,7 +18,7 @@ export default async function economyRoutes(fastify) {
     const rateLimiter = createRateLimiter('economy');
 
     // GET /economy/balance - 残高取得
-    fastify.get('/economy/balance', { preHandler: rateLimiter }, async (request, reply) => {
+    fastify.get('/balance', { preHandler: rateLimiter }, async (request, reply) => {
         const { userId } = request.query;
 
         if (!userId) {
@@ -71,7 +71,7 @@ export default async function economyRoutes(fastify) {
     });
 
     // GET /economy/rank - ランク情報
-    fastify.get('/economy/rank', { preHandler: rateLimiter }, async (request, reply) => {
+    fastify.get('/rank', { preHandler: rateLimiter }, async (request, reply) => {
         const { userId } = request.query;
 
         if (!userId) {
@@ -105,7 +105,7 @@ export default async function economyRoutes(fastify) {
     });
 
     // GET /economy/leaderboard - リーダーボード
-    fastify.get('/economy/leaderboard', { preHandler: rateLimiter }, async (request, reply) => {
+    fastify.get('/leaderboard', { preHandler: rateLimiter }, async (request, reply) => {
         const { limit = 10 } = request.query;
 
         try {
@@ -137,7 +137,7 @@ export default async function economyRoutes(fastify) {
     });
 
     // POST /economy/convert - Point→XP変換
-    fastify.post('/economy/convert', { preHandler: rateLimiter }, async (request, reply) => {
+    fastify.post('/convert', { preHandler: rateLimiter }, async (request, reply) => {
         const { userId, points } = request.body;
 
         const validation = validateRequired(request.body, ['userId', 'points']);
@@ -195,7 +195,7 @@ export default async function economyRoutes(fastify) {
     });
 
     // POST /economy/daily - デイリーボーナス
-    fastify.post('/economy/daily', { preHandler: rateLimiter }, async (request, reply) => {
+    fastify.post('/daily', { preHandler: rateLimiter }, async (request, reply) => {
         const { userId } = request.body;
 
         const validation = validateRequired(request.body, ['userId']);
@@ -229,7 +229,7 @@ export default async function economyRoutes(fastify) {
     });
 
     // GET /economy/shop - ショップアイテム一覧
-    fastify.get('/economy/shop', { preHandler: rateLimiter }, async (request, reply) => {
+    fastify.get('/shop', { preHandler: rateLimiter }, async (request, reply) => {
         try {
             const items = await getShopItems();
             return reply.send({
@@ -243,7 +243,7 @@ export default async function economyRoutes(fastify) {
     });
 
     // POST /economy/buy - アイテム購入
-    fastify.post('/economy/buy', { preHandler: rateLimiter }, async (request, reply) => {
+    fastify.post('/buy', { preHandler: rateLimiter }, async (request, reply) => {
         const { userId, itemId } = request.body;
 
         const validation = validateRequired(request.body, ['userId', 'itemId']);
@@ -276,7 +276,7 @@ export default async function economyRoutes(fastify) {
     });
 
     // GET /economy/inventory - インベントリ取得
-    fastify.get('/economy/inventory', { preHandler: rateLimiter }, async (request, reply) => {
+    fastify.get('/inventory', { preHandler: rateLimiter }, async (request, reply) => {
         const { userId } = request.query;
         if (!userId) return reply.code(400).send({ error: 'Missing userId', code: 'VALIDATION_ERROR' });
 
@@ -294,7 +294,7 @@ export default async function economyRoutes(fastify) {
     });
 
     // POST /economy/use - アイテム使用
-    fastify.post('/economy/use', { preHandler: rateLimiter }, async (request, reply) => {
+    fastify.post('/use', { preHandler: rateLimiter }, async (request, reply) => {
         const { userId, itemId } = request.body;
         if (!userId || !itemId) return reply.code(400).send({ error: 'Missing fields', code: 'VALIDATION_ERROR' });
 
